@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading;
-
-using Microsoft.SPOT;
-using Microsoft.SPOT.Hardware;
+﻿using System.Threading;
+using GHIElectronics.NETMF.Hardware;
 
 using GHIElectronics.NETMF.FEZ;
 
@@ -12,52 +9,48 @@ namespace HelloFEZPanda
     {
         public static void Main()
         {
-            //The LCD requires 6 signals to work (E, RS, D4, D5, D6,
-            //D7) connect pin #3 (contrast) to ground. Also, pin RW is
-            //not needed and it must be connected to ground
-            //pin connection list:
-            //GND- ground
-            //VDD- connect to 5V
-            //Vo- contrast voltage, connect to ground
-            //RS- connect to any digital pin on FEZ
-            //RW- not needed, connect to ground
-            //D0-leave unconnected
-            //D1-leave unconnected
-            //D2-leave unconnected
-            //D3-leave unconnected
-            //D4-connect to any digital pin on FEZ
-            //D5-connect to any digital pin on FEZ
-            //D6-connect to any digital pin on FEZ
-            //D7-connect to any digital pin on FEZ
-            //BL_A- backlight, connect to 5V
-            //BL_K- backlight, connect to ground
-            var lcd = new FEZ_Components.LCD2x16(FEZ_Pin.Digital.Di5, FEZ_Pin.Digital.Di6, FEZ_Pin.Digital.Di7,
-            FEZ_Pin.Digital.Di8, FEZ_Pin.Digital.Di3, FEZ_Pin.Digital.Di2);
+            var lcd = new FEZ_Components.LCD2x16(
+                FEZ_Pin.Digital.Di3, FEZ_Pin.Digital.Di2, FEZ_Pin.Digital.Di1, FEZ_Pin.Digital.Di0, FEZ_Pin.Digital.Di7, FEZ_Pin.Digital.Di6);
             lcd.Clear();
-            int i = 0;
-            while (true)
+
+            using (var servo0 = new FEZ_Components.ServoMotor(FEZ_Pin.Digital.Di13))
             {
-                lcd.CursorHome();
-                lcd.Print("Counter " + i++);
-                Thread.Sleep(100);
+                servo0.SetPosition(0);
+                Thread.Sleep(1000);
             }
 
-            //var servo0 = new FEZ_Components.ServoMotor(FEZ_Pin.Digital.Di0);
-            //var servo1 = new FEZ_Components.ServoMotor(FEZ_Pin.Digital.Di1);
-            
-            //for (byte ii = 0; ii < 3; ii++)
-            //{
-            //    // slowly translates from one end to the other, then jumps back and starts again.
-            //    for (byte jj = 0; jj <= 180; jj += 10)
-            //    {
-            //        servo0.SetPosition(jj);
-            //        servo1.SetPosition(jj);
-            //        Thread.Sleep(2);
-            //    }
-            //}
-            
-            //servo0.Dispose();
-            //servo1.Dispose();
+            for (int ii = 10; ii >= 0; ii--)
+            {
+                lcd.CursorHome();
+                lcd.Print("Downcount: " + ii + " ");
+                Thread.Sleep(1000);
+            }
+
+            var piezo = new PWM((PWM.Pin) FEZ_Pin.PWM.Di10);
+
+            using (var servo0 = new FEZ_Components.ServoMotor(FEZ_Pin.Digital.Di13))
+            {
+                servo0.SetPosition(180);
+                Thread.Sleep(1000);
+            }
+
+            piezo.Set(5000, 50);
+            Thread.Sleep(500);
+            piezo.Set(1000, 50);
+            Thread.Sleep(500);
+            piezo.Set(500, 50);
+            Thread.Sleep(500);
+            piezo.Set(50, 50);
+            Thread.Sleep(500);
+            piezo.Set(0, 0);
+
+            using (var servo0 = new FEZ_Components.ServoMotor(FEZ_Pin.Digital.Di13))
+            {
+                servo0.SetPosition(0);
+                Thread.Sleep(1000);
+            }
+
+            lcd.Clear();
 
             // Blink board LED
             //bool ledState = false;
